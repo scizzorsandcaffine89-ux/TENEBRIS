@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tenebris City — Welcome & Information Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oswald:wght@200;400;700&family=Lato:wght@300;400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060608;--panel:#0b0b12;--border:#13131f;
+  --green:#00ff88;--purple:#b400ff;--dim:#44445a;
+  --text:#b0b0c4;--muted:#606075;--red:#ff2255;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.07) 3px,rgba(0,0,0,.07) 4px);pointer-events:none;z-index:9000;}
+#eyeCanvas{position:fixed;inset:0;z-index:0;opacity:.06;pointer-events:none;}
+#flash{position:fixed;inset:0;background:rgba(0,255,136,.05);pointer-events:none;z-index:8999;opacity:0;transition:opacity .04s;}
+#flash.on{opacity:1;}
+
+/* ── TOPBAR ── */
+.bar{position:fixed;top:0;left:0;right:0;z-index:500;background:rgba(6,6,8,.97);border-bottom:1px solid var(--border);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;}
+.logo{display:flex;align-items:center;gap:.6rem;}
+.logo-mark{width:26px;height:26px;border:1px solid var(--green);display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:.72rem;color:var(--green);box-shadow:0 0 8px rgba(0,255,136,.18);flex-shrink:0;}
+.logo-text{font-family:'Oswald',sans-serif;font-weight:400;font-size:.85rem;letter-spacing:.28em;color:#cccce0;text-transform:uppercase;}
+.logo-text em{color:var(--green);font-style:normal;}
+.bar-tag{font-family:'Share Tech Mono',monospace;font-size:.54rem;color:var(--dim);letter-spacing:.18em;text-transform:uppercase;display:none;}
+@media(min-width:640px){.bar-tag{display:block;}}
+.bar-nav{display:flex;gap:1.2rem;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;}
+.bar-nav a{color:var(--dim);text-decoration:none;transition:color .2s;}
+.bar-nav a:hover{color:#cccce0;}
+
+/* ── HERO ── */
+.hero{margin-top:52px;background:linear-gradient(135deg,#07070f 0%,#0a0818 50%,#060610 100%);border-bottom:1px solid var(--border);padding:3rem 1.5rem 2.5rem;position:relative;overflow:hidden;}
+@media(min-width:640px){.hero{padding:4rem 3rem 3rem;}}
+.hero::after{content:'';position:absolute;top:-40%;right:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(180,0,255,.06) 0%,transparent 70%);pointer-events:none;}
+.hero-eye{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:.38em;color:var(--green);text-transform:uppercase;margin-bottom:.6rem;opacity:.8;position:relative;z-index:1;}
+.hero-h{font-family:'Oswald',sans-serif;font-size:clamp(2.2rem,6vw,3.8rem);font-weight:700;line-height:.95;text-transform:uppercase;color:#e8e8f0;position:relative;z-index:1;}
+.hero-h span{color:var(--purple);text-shadow:0 0 24px rgba(180,0,255,.4);}
+.hero-p{margin-top:.9rem;font-size:.85rem;color:var(--muted);max-width:520px;line-height:1.8;position:relative;z-index:1;}
+
+/* ── TICKER ── */
+.ticker{background:#08080f;border-top:1px solid rgba(180,0,255,.15);border-bottom:1px solid rgba(180,0,255,.15);padding:.42rem 0;overflow:hidden;white-space:nowrap;position:relative;z-index:1;}
+.ticker-t{display:inline-block;animation:tick 60s linear infinite;font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.1em;color:var(--purple);}
+.ticker-t .sep{color:#1c1c2a;margin:0 1.2rem;}
+.ticker-t .warn{color:var(--red);}
+.ticker-t .ghost{color:#141420;}
+@keyframes tick{from{transform:translateX(100vw);}to{transform:translateX(-100%);}}
+
+/* ── PAGE ── */
+.page{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:2rem 1rem;}
+@media(min-width:900px){.page{display:grid;grid-template-columns:1fr 320px;gap:2rem;padding:2.5rem 2rem;}}
+
+.lbl{font-family:'Share Tech Mono',monospace;font-size:.54rem;letter-spacing:.38em;color:var(--dim);text-transform:uppercase;margin-bottom:.9rem;display:flex;align-items:center;gap:.55rem;}
+.lbl::before{content:'';width:16px;height:1px;background:var(--green);flex-shrink:0;}
+
+/* ── TRANSMISSION ── */
+.tx-box{background:var(--panel);border:1px solid var(--border);padding:1.5rem;position:relative;overflow:hidden;margin-bottom:1.75rem;}
+@media(min-width:640px){.tx-box{padding:2rem;}}
+.tx-box::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:var(--green);box-shadow:0 0 10px var(--green);}
+.tx-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem;padding-bottom:.7rem;border-bottom:1px solid var(--border);}
+.tx-badge{font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.22em;padding:.18rem .5rem;border:1px solid rgba(0,255,136,.3);color:var(--green);background:rgba(0,255,136,.05);}
+.tx-freq{font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--dim);letter-spacing:.08em;}
+.tx-body{font-family:'Share Tech Mono',monospace;font-size:.8rem;line-height:2.1;color:#8888aa;min-height:160px;}
+.tx-city{color:#aaaacc;cursor:pointer;transition:color .1s;}
+.tx-city:hover{color:var(--green);text-shadow:0 0 6px var(--green);animation:gw .25s steps(1) 2;}
+.tx-arb{color:#9999bb;cursor:pointer;border-bottom:1px dashed #252535;transition:all .2s;position:relative;}
+.tx-arb:hover{color:var(--purple);border-bottom-color:var(--purple);text-shadow:0 0 8px rgba(180,0,255,.5);}
+.tx-arb::after{content:'— 47X';position:absolute;bottom:-1.6em;left:0;font-size:.56rem;color:var(--purple);opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+.tx-arb:hover::after{opacity:1;}
+.cblink{display:inline-block;width:7px;height:.85em;background:var(--green);vertical-align:text-bottom;margin-left:2px;animation:blink .9s step-end infinite;}
+@keyframes blink{50%{opacity:0;}}
+@keyframes gw{0%{transform:translate(0,0);}25%{transform:translate(-2px,1px);filter:hue-rotate(90deg);}75%{transform:translate(2px,-1px);filter:hue-rotate(180deg);}100%{transform:translate(0,0);filter:none;}}
+
+/* ── NEWS GRID ── */
+.news-grid{display:grid;grid-template-columns:1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:1.75rem;}
+@media(min-width:540px){.news-grid{grid-template-columns:1fr 1fr;}}
+.card{background:var(--panel);padding:1.25rem;position:relative;overflow:hidden;transition:background .2s;cursor:pointer;}
+.card:hover{background:#0e0e1a;}
+.card.wide{grid-column:1/-1;}
+.card-cat{font-family:'Share Tech Mono',monospace;font-size:.48rem;letter-spacing:.26em;text-transform:uppercase;color:var(--purple);margin-bottom:.4rem;}
+.card-cat.crime{color:var(--red);}
+.card-cat.civic{color:#3399ff;}
+.card-cat.notice{color:#ff8800;}
+.card-cat.govt{color:#44aaff;}
+.card-head{font-family:'Oswald',sans-serif;font-weight:400;font-size:.95rem;color:#c4c4d8;line-height:1.35;margin-bottom:.4rem;}
+.card.wide .card-head{font-size:1.25rem;}
+.card-meta{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--dim);letter-spacing:.08em;margin-bottom:.5rem;}
+.card-preview{font-size:.73rem;color:var(--muted);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.card-readmore{font-family:'Share Tech Mono',monospace;font-size:.52rem;color:var(--green);letter-spacing:.15em;margin-top:.6rem;opacity:.7;}
+.card:hover .card-readmore{opacity:1;}
+.ghost-line{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:transparent;margin-top:.4rem;letter-spacing:.1em;transition:color .7s;pointer-events:none;}
+.card:hover .ghost-line{color:rgba(180,0,255,.28);}
+.card-arrow{position:absolute;top:1.1rem;right:1.1rem;font-size:.7rem;color:var(--dim);transition:color .2s;}
+.card:hover .card-arrow{color:var(--green);}
+
+/* ── MAP ── */
+.map-box{background:#07070e;border:1px solid var(--border);padding:1.1rem;margin-bottom:1.75rem;}
+.map-note{font-family:'Share Tech Mono',monospace;font-size:.5rem;color:var(--dim);letter-spacing:.1em;margin-bottom:.7rem;}
+.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;height:auto;}
+@media(min-width:480px){.dgrid{grid-template-columns:repeat(5,1fr);}}
+.dist{background:#09090f;border:1px solid #101018;display:flex;flex-direction:column;justify-content:space-between;padding:.4rem .45rem;font-family:'Share Tech Mono',monospace;font-size:.46rem;letter-spacing:.06em;color:#222232;text-transform:uppercase;cursor:pointer;transition:all .2s;position:relative;min-height:50px;}
+.dist:hover{border-color:var(--green);color:var(--green);background:rgba(0,255,136,.02);}
+.dist.locked{color:#111118;}
+.dist.locked:hover{border-color:rgba(255,34,85,.35);color:rgba(255,34,85,.22);}
+.dist.lit{color:#2a2a40;border-color:#111120;}
+.dist-n{font-weight:bold;font-size:.44rem;}
+.dist-p{font-size:.42rem;opacity:.6;}
+.dist-tip{position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);background:#050508;border:1px solid var(--green);color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.5rem;padding:.28rem .48rem;white-space:nowrap;z-index:20;opacity:0;pointer-events:none;transition:opacity .15s;letter-spacing:.06em;}
+.dist:hover .dist-tip{opacity:1;}
+.dist.locked .dist-tip{border-color:var(--red);color:var(--red);}
+
+/* ── SIDEBAR ── */
+.sidebar{margin-top:1.5rem;}
+@media(min-width:900px){.sidebar{margin-top:0;}}
+.s-panel{background:var(--panel);border:1px solid var(--border);padding:1.1rem;position:relative;margin-bottom:1rem;}
+.s-panel::after{content:'';position:absolute;bottom:0;left:0;height:1px;width:55%;background:linear-gradient(90deg,var(--purple),transparent);}
+.stat{display:flex;justify-content:space-between;align-items:baseline;padding:.5rem 0;border-bottom:1px solid #0d0d18;font-size:.68rem;}
+.stat:last-child{border-bottom:none;}
+.stat-k{color:var(--muted);}
+.stat-v{font-family:'VT323',monospace;font-size:1rem;color:var(--green);}
+.stat-v.red{color:var(--red);}
+.stat-v.ghost{color:#1c1c28;font-size:.56rem;letter-spacing:.1em;}
+.feed{max-height:185px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#111120 transparent;}
+.feed-row{padding:.45rem 0;border-bottom:1px solid #0a0a14;font-size:.6rem;line-height:1.5;color:#454560;animation:fu .4s ease forwards;}
+.feed-row.new{color:#7777a0;}
+.feed-row.alert{color:rgba(255,34,85,.4);}
+.feed-t{color:#1e1e2c;font-family:'Share Tech Mono',monospace;margin-right:.4rem;font-size:.52rem;}
+@keyframes fu{from{opacity:0;transform:translateY(3px);}to{opacity:1;}}
+.terminal{background:#060610;border:1px solid var(--border);padding:.9rem 1.1rem 1.1rem;margin-bottom:1rem;}
+.t-prompt{font-family:'Share Tech Mono',monospace;font-size:.54rem;color:var(--dim);letter-spacing:.1em;margin-bottom:.6rem;}
+.t-row{display:flex;align-items:center;gap:.45rem;}
+.t-row span{font-family:'Share Tech Mono',monospace;color:var(--green);font-size:.85rem;}
+#codeIn{background:transparent;border:none;border-bottom:1px solid #1a1a28;color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.85rem;letter-spacing:.28em;width:100%;outline:none;text-transform:uppercase;padding:.12rem 0;}
+#codeIn:focus{border-bottom-color:var(--green);}
+.t-btn{margin-top:.6rem;width:100%;background:transparent;border:1px solid #1a1a28;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;padding:.38rem;cursor:pointer;transition:all .2s;}
+.t-btn:hover{border-color:var(--green);color:var(--green);}
+.t-err{font-family:'Share Tech Mono',monospace;font-size:.54rem;color:var(--red);letter-spacing:.1em;margin-top:.35rem;opacity:0;transition:opacity .3s;}
+.t-err.on{opacity:1;}
+
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.1rem 1.5rem;display:flex;flex-wrap:wrap;gap:.5rem;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:.5rem;color:#1a1a26;letter-spacing:.12em;}
+
+/* ── ARTICLE OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:6000;display:none;overflow-y:auto;}
+.overlay.on{display:block;}
+.article{max-width:780px;margin:0 auto;padding:2rem 1rem 4rem;position:relative;z-index:1;}
+@media(min-width:640px){.article{padding:3rem 2rem 5rem;}}
+.art-back{font-family:'Share Tech Mono',monospace;font-size:.58rem;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;cursor:pointer;margin-bottom:2rem;display:inline-flex;align-items:center;gap:.5rem;background:transparent;border:none;padding:0;transition:color .2s;}
+.art-back:hover{color:var(--green);}
+.art-cat{font-family:'Share Tech Mono',monospace;font-size:.52rem;letter-spacing:.3em;text-transform:uppercase;color:var(--purple);margin-bottom:.6rem;}
+.art-cat.crime{color:var(--red);}
+.art-cat.civic{color:#3399ff;}
+.art-cat.notice{color:#ff8800;}
+.art-cat.govt{color:#44aaff;}
+.art-h{font-family:'Oswald',sans-serif;font-size:clamp(1.6rem,4vw,2.4rem);font-weight:700;color:#e8e8f0;line-height:1.1;margin-bottom:.75rem;}
+.art-meta{font-family:'Share Tech Mono',monospace;font-size:.56rem;color:var(--dim);letter-spacing:.1em;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.art-meta span{color:var(--muted);}
+.art-body{font-size:.9rem;line-height:1.9;color:#9898b8;}
+.art-body p{margin-bottom:1.1rem;}
+.art-body p:last-child{margin-bottom:0;}
+.art-body strong{color:#c4c4d8;font-weight:700;}
+.art-body em{color:var(--muted);font-style:italic;}
+.art-divider{border:none;border-top:1px solid var(--border);margin:1.5rem 0;}
+.art-note{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--dim);letter-spacing:.12em;padding:.75rem;border:1px solid var(--border);background:rgba(180,0,255,.03);margin-top:1.5rem;}
+.art-note.red{border-color:rgba(255,34,85,.2);color:rgba(255,34,85,.5);}
+.art-ghost{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:transparent;margin-top:1.5rem;letter-spacing:.12em;transition:color 1.5s;}
+.art-ghost:hover{color:rgba(180,0,255,.35);cursor:default;}
+.art-pullquote{border-left:2px solid var(--purple);padding:.75rem 1.25rem;margin:1.5rem 0;font-family:'Oswald',sans-serif;font-weight:200;font-size:1.1rem;color:#8888aa;font-style:italic;}
+
+/* ── ARBITER SCREEN ── */
+#arbScreen{position:fixed;inset:0;z-index:10000;background:#000;display:none;align-items:center;justify-content:center;flex-direction:column;cursor:default;}
+#arbScreen.on{display:flex;}
+.arb-eyes-bg{position:absolute;inset:0;background-image:url('/mnt/user-data/uploads/7815.webp');background-size:cover;background-position:center;opacity:.12;pointer-events:none;animation:eyePulse 3s ease-in-out infinite;}
+@keyframes eyePulse{0%,100%{opacity:.08;}50%{opacity:.16;}}
+.arb-word{font-family:'VT323',monospace;font-size:min(18vw,160px);color:var(--red);text-shadow:0 0 30px var(--red),0 0 80px rgba(255,34,85,.4);letter-spacing:.12em;position:relative;z-index:1;animation:arbG .08s steps(1) infinite;user-select:none;}
+@keyframes arbG{
+  0%{transform:translate(0,0) skewX(0deg);clip-path:none;color:var(--red);}
+  10%{transform:translate(-4px,2px) skewX(-3deg);clip-path:inset(20% 0 60% 0);color:#ff0000;}
+  20%{transform:translate(4px,-1px) skewX(2deg);clip-path:inset(50% 0 10% 0);color:#cc0033;}
+  30%{transform:translate(-2px,3px);clip-path:none;color:var(--red);}
+  40%{transform:translate(3px,0) skewX(1deg);clip-path:inset(30% 0 40% 0);}
+  50%{transform:translate(0,0);clip-path:none;color:var(--red);}
+  60%{transform:translate(-3px,1px) skewX(-2deg);clip-path:inset(60% 0 5% 0);color:#dd0022;}
+  70%{transform:translate(2px,-2px);clip-path:none;color:var(--red);}
+  80%{transform:translate(0,0);clip-path:none;}
+  90%{transform:translate(-1px,1px) skewX(1deg);clip-path:inset(10% 0 70% 0);color:#ff0044;}
+  100%{transform:translate(0,0);clip-path:none;color:var(--red);}
+}
+.arb-sub{font-family:'Share Tech Mono',monospace;font-size:clamp(.48rem,.85vw,.72rem);color:rgba(255,34,85,.5);letter-spacing:.35em;text-transform:uppercase;position:relative;z-index:1;margin-top:.5rem;animation:subF 2s step-end infinite;text-align:center;padding:0 1rem;}
+@keyframes subF{0%,100%{opacity:1;}45%{opacity:.1;}50%{opacity:.8;}55%{opacity:.2;}60%{opacity:1;}}
+.arb-code{font-family:'Share Tech Mono',monospace;font-size:clamp(.6rem,1.1vw,.85rem);color:rgba(255,34,85,.3);letter-spacing:.25em;position:relative;z-index:1;margin-top:2rem;animation:subF 3s step-end infinite;text-align:center;padding:0 1rem;}
+.arb-dismiss{position:absolute;bottom:1.5rem;right:1.5rem;font-family:'Share Tech Mono',monospace;font-size:.5rem;color:#0d0d0d;letter-spacing:.15em;background:transparent;border:none;cursor:pointer;transition:color .3s;}
+.arb-dismiss:hover{color:#1a1a1a;}
+#arbScreen::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,34,85,.2);animation:scan 3s linear infinite;pointer-events:none;z-index:2;}
+@keyframes scan{from{top:0;}to{top:100%;}}
+
+#ghost{position:fixed;bottom:1.5rem;right:1.5rem;width:6px;height:6px;background:transparent;cursor:pointer;z-index:600;}
+</style>
+</head>
+<body>
+
+<canvas id="eyeCanvas"></canvas>
+<div id="flash"></div>
+
+<header class="bar">
+  <div class="logo">
+    <div class="logo-mark">T</div>
+    <div class="logo-text"><em>TENEBRIS</em> CITY</div>
+  </div>
+  <div class="bar-tag">Public Information &amp; Civic Services Portal</div>
+  <nav class="bar-nav">
+    <a href="#tx">Broadcasts</a>
+    <a href="#news">News</a>
+    <a href="#map">Districts</a>
+  </nav>
+</header>
+
+<section class="hero" style="margin-top:52px;">
+  <div class="hero-eye">// welcome to tenebris // public information portal</div>
+  <h1 class="hero-h">YOUR CITY.<br><span>YOUR INFORMATION.</span></h1>
+  <p class="hero-p">A civic resource for residents, newcomers, and visitors. City news, district updates, and public broadcasts — all in one place. We keep nothing from you.</p>
+</section>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-t">
+    <span>CITY COUNCIL CONFIRMS ALL DISTRICTS OPERATING NORMALLY</span><span class="sep">◆</span>
+    <span>CASE 4327 — CLOSED // NO FURTHER ACTION REQUIRED</span><span class="sep">◆</span>
+    <span class="warn">EASTLINE TRANSIT SUSPENDED — RESUMPTION DATE UNCONFIRMED</span><span class="sep">◆</span>
+    <span>FOURTH PRECINCT: "VIOLENCE STATISTICS WITHIN EXPECTED RANGE"</span><span class="sep">◆</span>
+    <span class="ghost">… e v i d e n c e … m i s s i n g …</span><span class="sep">◆</span>
+    <span class="warn">MISSING: 11 RESIDENTS UNACCOUNTED FOR — HOLLOW WARD</span><span class="sep">◆</span>
+    <span>ARBITER PROGRAM ANNUAL REVIEW — FINDINGS: CLASSIFIED</span><span class="sep">◆</span>
+    <span>WELCOME TO TENEBRIS. STAY INFORMED. STAY CALM.</span><span class="sep">◆</span>
+  </div>
+</div>
+
+<div class="page">
+  <div>
+
+    <section id="tx" style="margin-bottom:1.75rem;">
+      <div class="lbl">Incoming Broadcast</div>
+      <div class="tx-box">
+        <div class="tx-top">
+          <div class="tx-badge">LIVE // UNVERIFIED SOURCE</div>
+          <div class="tx-freq">FREQ 47.3 mHz · ENC: PARTIAL · ORIGIN: NULL</div>
+        </div>
+        <div class="tx-body" id="txBody"></div>
+      </div>
+    </section>
+
+    <section id="news">
+      <div class="lbl">City Newsfeed</div>
+      <div class="news-grid">
+
+        <div class="card wide" onclick="openArticle('homicide3')">
+          <div class="card-arrow">↗</div>
+          <div class="card-cat crime">Crime // Outskirts — Breaking</div>
+          <div class="card-head">Three Homicide Cases Officially Closed — Investigators Cite "Insufficient Recoverable Evidence"</div>
+          <div class="card-meta">PUBLISHED 03.11.26 · REPORTER: T. VASQ · CASE FILE: REDACTED</div>
+          <div class="card-preview">All three investigations — opened over the past fourteen months — have been formally closed by the Fourth Precinct. Officials state that critical evidence across all three cases has either degraded beyond use or cannot be located in departmental archives.</div>
+          <div class="ghost-line">do not trust — system watching // ref: 47X</div>
+          <div class="card-readmore">READ FULL ARTICLE →</div>
+        </div>
+
+        <div class="card" onclick="openArticle('eastline')">
+          <div class="card-arrow">↗</div>
+          <div class="card-cat notice">Transit</div>
+          <div class="card-head">Eastline Rail Suspended Indefinitely — No Explanation Issued</div>
+          <div class="card-meta">03.10.26 · REPORTER: CITY DESK</div>
+          <div class="card-preview">The Eastline rail service connecting six districts has been suspended without a stated return date or official reason from the Transit Authority.</div>
+          <div class="card-readmore">READ FULL ARTICLE →</div>
+        </div>
+
+        <div class="card" onclick="openArticle('cleanwall')">
+          <div class="card-arrow">↗</div>
+          <div class="card-cat civic">Civic Notice</div>
+          <div class="card-head">City Launches "Clean Wall" Campaign — Unauthorized Public Messaging Targeted</div>
+          <div class="card-meta">03.09.26 · OFFICIAL RELEASE</div>
+          <div class="card-preview">The Department of Civic Order announced a sweeping campaign to remove unauthorized signage, graffiti, and "unsanctioned public communication" across seven districts.</div>
+          <div class="ghost-line">they know. — 47X-ARC</div>
+          <div class="card-readmore">READ FULL ARTICLE →</div>
+        </div>
+
+        <div class="card" onclick="openArticle('judiciary')">
+          <div class="card-arrow">↗</div>
+          <div class="card-cat govt">Government</div>
+          <div class="card-head">Council Reaffirms Commitment to Transparent Judiciary — Sixth Year Running</div>
+          <div class="card-meta">03.08.26 · OFFICIAL RELEASE</div>
+          <div class="card-preview">The City Council issued its annual statement affirming the independence and fairness of Tenebris courts, citing the ARBITER oversight program as evidence of systemic accountability.</div>
+          <div class="card-readmore">READ FULL ARTICLE →</div>
+        </div>
+
+        <div class="card" onclick="openArticle('hollow')">
+          <div class="card-arrow">↗</div>
+          <div class="card-cat notice">Missing Persons</div>
+          <div class="card-head">Eleven Residents Unaccounted for in Hollow Ward — Cases Filed as "Low Priority"</div>
+          <div class="card-meta">03.07.26 · SRC: ANONYMOUS TIP</div>
+          <div class="card-preview">Residents of Hollow Ward have raised alarms after eleven neighbors were reported missing within a span of three weeks. Department response has been minimal.</div>
+          <div class="ghost-line">… case 4327 … follow the signal …</div>
+          <div class="card-readmore">READ FULL ARTICLE →</div>
+        </div>
+
+        <div class="card" onclick="openArticle('case4327')">
+          <div class="card-arrow">↗</div>
+          <div class="card-cat crime">Cold Case // Classified</div>
+          <div class="card-head">Case 4327: What We Know — and What Keeps Disappearing</div>
+          <div class="card-meta">03.06.26 · REPORTER: ANON</div>
+          <div class="card-preview">For two years, Case 4327 has accumulated a trail of redactions, sealed files, missing witnesses, and an evidence log that seems to shrink each time it is accessed.</div>
+          <div class="ghost-line">… 47X-ARC … you already know …</div>
+          <div class="card-readmore">READ FULL ARTICLE →</div>
+        </div>
+
+        <div class="card" onclick="openArticle('carrow')">
+          <div class="card-arrow">↗</div>
+          <div class="card-cat crime">Crime // Carrow</div>
+          <div class="card-head">The Carrow Trial That Never Was — A Timeline</div>
+          <div class="card-meta">03.05.26 · REPORTER: M. OREL</div>
+          <div class="card-preview">What began as an open-and-shut murder case in the Carrow district has unraveled into one of Tenebris's most quietly suppressed legal failures in recent memory.</div>
+          <div class="card-readmore">READ FULL ARTICLE →</div>
+        </div>
+
+        <div class="card" onclick="openArticle('precinct')">
+          <div class="card-arrow">↗</div>
+          <div class="card-cat civic">Public Services</div>
+          <div class="card-head">Ashgate Precinct Budget Cut for Third Consecutive Year Despite Rising Crime</div>
+          <div class="card-meta">03.04.26 · REPORTER: CITY DESK</div>
+          <div class="card-preview">The Ashgate precinct — already the most underfunded in the city — will see another reduction in its operating budget next fiscal quarter, according to documents obtained by this publication.</div>
+          <div class="card-readmore">READ FULL ARTICLE →</div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="map" style="margin-top:1.75rem;">
+      <div class="lbl">District Overview</div>
+      <div class="map-box">
+        <div class="map-note">// click any district for information — restricted zones require authorization</div>
+        <div class="dgrid">
+          <div class="dist lit" onclick="openArticle('d-crestfall')"><div class="dist-n">Crestfall</div><div class="dist-p">142K</div><div class="dist-tip">Click for district profile</div></div>
+          <div class="dist lit" onclick="openArticle('d-ndocks')"><div class="dist-n">N. Docks</div><div class="dist-p">89K</div><div class="dist-tip">Click for district profile</div></div>
+          <div class="dist locked" onclick="openArticle('d-sector9')"><div class="dist-n">Sector 9</div><div class="dist-p">RESTR.</div><div class="dist-tip">ACCESS DENIED — enter code</div></div>
+          <div class="dist lit" onclick="openArticle('d-ironqtr')"><div class="dist-n">Iron Qtr.</div><div class="dist-p">201K</div><div class="dist-tip">Click for district profile</div></div>
+          <div class="dist locked" onclick="openArticle('d-hollow')"><div class="dist-n">The Hollow</div><div class="dist-p">RESTR.</div><div class="dist-tip">CLASSIFIED — file sealed</div></div>
+          <div class="dist lit" onclick="openArticle('d-carrow')"><div class="dist-n">Carrow</div><div class="dist-p">67K</div><div class="dist-tip">Click for district profile</div></div>
+          <div class="dist lit" onclick="openArticle('d-eastcorr')"><div class="dist-n">E. Corr.</div><div class="dist-p">115K</div><div class="dist-tip">Click for district profile</div></div>
+          <div class="dist locked" onclick="openArticle('d-vaultrow')"><div class="dist-n">Vault Row</div><div class="dist-p">RESTR.</div><div class="dist-tip">G̷L̴I̶T̸C̵H̷ — enter 47X-ARC</div></div>
+          <div class="dist lit" onclick="openArticle('d-ashgate')"><div class="dist-n">Ashgate</div><div class="dist-p">53K</div><div class="dist-tip">Click for district profile</div></div>
+          <div class="dist lit" onclick="openArticle('d-meridian')"><div class="dist-n">Meridian</div><div class="dist-p">178K</div><div class="dist-tip">Click for district profile</div></div>
+          <div class="dist lit" onclick="openArticle('d-westbank')"><div class="dist-n">Westbank</div><div class="dist-p">92K</div><div class="dist-tip">Click for district profile</div></div>
+          <div class="dist locked" onclick="openArticle('d-deepward')"><div class="dist-n">Deep Ward</div><div class="dist-p">RESTR.</div><div class="dist-tip">⚠ enter code — ref: ARC</div></div>
+          <div class="dist lit" onclick="openArticle('d-lowline')"><div class="dist-n">Lowline</div><div class="dist-p">34K</div><div class="dist-tip">Click for district profile</div></div>
+          <div class="dist lit" onclick="openArticle('d-palecross')"><div class="dist-n">Pale Cross</div><div class="dist-p">71K</div><div class="dist-tip">Click for district profile</div></div>
+          <div class="dist" onclick="openArticle('d-outskirts')"><div class="dist-n">Outskirts</div><div class="dist-p">Unknown</div><div class="dist-tip">Click for district profile</div></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <aside class="sidebar">
+    <div class="lbl">City Vitals</div>
+    <div class="s-panel">
+      <div class="stat"><span class="stat-k">Open homicide cases</span><span class="stat-v red" id="kc">247</span></div>
+      <div class="stat"><span class="stat-k">Cases gone cold (30d)</span><span class="stat-v red">34</span></div>
+      <div class="stat"><span class="stat-k">Missing persons (active)</span><span class="stat-v red">89</span></div>
+      <div class="stat"><span class="stat-k">Sealed evidence files</span><span class="stat-v ghost">CLASSIFIED</span></div>
+      <div class="stat"><span class="stat-k">Official status</span><span class="stat-v ghost">UNDER CONTROL</span></div>
+    </div>
+
+    <div class="lbl">Live Dispatch</div>
+    <div class="s-panel">
+      <div class="feed" id="feed"></div>
+    </div>
+
+    <div class="lbl" style="margin-top:.25rem;">Access Terminal</div>
+    <div class="terminal">
+      <div class="t-prompt">// restricted content requires authorization code</div>
+      <div class="t-row"><span>></span><input id="codeIn" type="text" placeholder="_ _ _ - _ _ _" maxlength="8" autocomplete="off" spellcheck="false"></div>
+      <div class="t-err" id="tErr">INVALID — ACCESS DENIED</div>
+      <button class="t-btn" onclick="submitCode()">Submit Query</button>
+    </div>
+  </aside>
+</div>
+
+<footer>
+  <span>TENEBRIS CIVIC INFORMATION NETWORK // EST. ████</span>
+  <span>ALL CONTENT REVIEWED BY CITY OVERSIGHT</span>
+  <span>THIS PORTAL IS MONITORED</span>
+</footer>
+
+<div id="ghost"></div>
+
+<!-- ── ARTICLE OVERLAY ── -->
+<div class="overlay" id="overlay">
+  <div class="article" id="articleContent"></div>
+</div>
+
+<!-- ── ARBITER SCREEN ── -->
+<div id="arbScreen">
+  <div class="arb-eyes-bg"></div>
+  <div class="arb-word">ARBITERS</div>
+  <div class="arb-sub">Autonomous Review Bureau for Investigation Tribunal Enforcement &amp; Reform</div>
+  <div class="arb-code">47X-ARC // SIGNAL CONFIRMED // YOU WERE NEVER SUPPOSED TO FIND THIS</div>
+  <button class="arb-dismiss" onclick="closeArb()">[ dismiss ]</button>
+</div>
+
+<script>
+/* ── ARTICLE DATA ── */
+const articles = {
+
+  homicide3:{
+    cat:'crime', catLabel:'Crime // Outskirts',
+    title:'Three Homicide Cases Officially Closed — Investigators Cite "Insufficient Recoverable Evidence"',
+    meta:'PUBLISHED 03.11.26 &nbsp;·&nbsp; REPORTER: T. VASQUEZ &nbsp;·&nbsp; CASE FILE: REDACTED &nbsp;·&nbsp; FOURTH PRECINCT',
+    body:`<p>All three investigations — opened over the past fourteen months — have been formally closed by the Fourth Precinct. Officials state that critical evidence across all three cases has either degraded beyond use or cannot be located in departmental archives. No charges have been filed. No arrests are expected.</p>
+<p>The three victims — identified in earlier reporting as <strong>Donal Keir, 41</strong>, <strong>Sela Muun, 29</strong>, and an individual whose name has been withheld at the family's request — were each found in the outer Outskirts district, within a half-mile radius of one another. All three deaths were initially ruled <em>suspicious</em> pending forensic review.</p>
+<div class="art-pullquote">"The forensic samples were logged. Then they weren't. Nobody has explained what happened in between." — anonymous department source</div>
+<p>According to a source within the precinct who requested anonymity, the forensic samples submitted in all three cases were logged into the departmental archive system in late 2025. When legal counsel for one of the victim's families formally requested access earlier this month, the archive listed the files as <strong>non-existent</strong>.</p>
+<p>A department spokesperson responded to this publication's inquiry with a single statement: <em>"Evidence handling is subject to internal policy. No further comment is appropriate at this time."</em></p>
+<hr class="art-divider">
+<p>This is the ninth time in eighteen months that the Fourth Precinct has closed a homicide case citing evidence unavailability. Legal advocates have called for an independent audit. The city has declined to authorize one.</p>
+<div class="art-note red">EDITOR'S NOTE: Two witnesses named in connection with this case declined to speak on record. A third could not be reached. A fourth has been listed as missing since 03.04.26.</div>
+<p class="art-ghost">case 4327 intersects — three names appear in both files — ref: 47X-ARC</p>`
+  },
+
+  eastline:{
+    cat:'notice', catLabel:'Transit',
+    title:'Eastline Rail Suspended Indefinitely — No Explanation Issued by the Transit Authority',
+    meta:'PUBLISHED 03.10.26 &nbsp;·&nbsp; REPORTER: CITY DESK &nbsp;·&nbsp; TRANSIT AUTHORITY REFUSED COMMENT',
+    body:`<p>The Eastline rail service — connecting Crestfall, Carrow, East Corridor, Iron Quarter, Westbank, and Pale Cross — was suspended at 04:17 on the morning of 03.10.26 without advance notice. No resumption date has been issued. No reason has been provided.</p>
+<p>Commuters arriving at Eastline platforms on the morning of the suspension found only a printed notice reading: <em>"Service suspended by order of City Operations. Further information pending."</em> No City Operations representative has since appeared publicly to elaborate.</p>
+<div class="art-pullquote">"My entire shift depends on that line. They gave us nothing. Not even a hotline." — Eastline commuter, Iron Quarter</div>
+<p>The suspension has caused significant disruption to daily commuters across six districts. Alternative routes are available via the slower Westline service, but capacity has not been scaled to meet demand. Several residents in Carrow — already under elevated curfew conditions — report being stranded entirely.</p>
+<hr class="art-divider">
+<p>This publication sent four written inquiries to the Transit Authority over a 48-hour period. None were acknowledged. A call to the City Operations general line reached an automated message stating that <em>"all service changes are under review."</em></p>
+<div class="art-note">The Eastline was also briefly suspended in late 2024, during what officials described as a "scheduled security assessment." That suspension lasted eleven days. No results of the assessment were made public.</div>`
+  },
+
+  cleanwall:{
+    cat:'civic', catLabel:'Civic Notice',
+    title:'City Launches "Clean Wall" Campaign — Unauthorized Public Messaging Targeted Across Seven Districts',
+    meta:'PUBLISHED 03.09.26 &nbsp;·&nbsp; OFFICIAL RELEASE, DEPT. OF CIVIC ORDER',
+    body:`<p>The Department of Civic Order announced a sweeping initiative on 03.09.26 to remove all "unauthorized signage, graffiti, and unsanctioned public communication" from city-owned surfaces across seven districts. The campaign, titled <strong>CLEAN WALL</strong>, is described by the department as a routine beautification effort.</p>
+<p>Affected districts include Iron Quarter, Westbank, Pale Cross, East Corridor, Carrow, Crestfall, and Ashgate. Crews have been deployed since before dawn. Residents report that in several locations, entire walls have been whitewashed — including surfaces that bore community notices, missing persons flyers, and hand-painted memorials.</p>
+<div class="art-pullquote">"They painted over Lena's memorial. She's been missing three weeks. That was the only thing marking where she lived." — Hollow Ward resident</div>
+<p>The department's official release makes no specific reference to which content is considered "unsanctioned." When asked directly, a spokesperson stated that <em>"any content not submitted through the proper civic display authorization process"</em> is subject to removal.</p>
+<hr class="art-divider">
+<p>Community advocates have raised concern that the campaign disproportionately targets working-class districts and coincides with growing public discussion around the Carrow case and Case 4327. The department did not respond to this characterization.</p>
+<div class="art-note red">Several removed murals included references to missing persons and phrases that have been associated with anti-ARBITER sentiment in recent months. The department declined to clarify whether content was selected for removal based on messaging.</div>
+<p class="art-ghost">CLEAN WALL authorization order — ref filed under ARC-COD-09 — 47X</p>`
+  },
+
+  judiciary:{
+    cat:'govt', catLabel:'Government',
+    title:'Council Reaffirms Commitment to Transparent Judiciary — Sixth Consecutive Year',
+    meta:'PUBLISHED 03.08.26 &nbsp;·&nbsp; OFFICIAL CITY COUNCIL RELEASE',
+    body:`<p>The Tenebris City Council issued its annual statement affirming the independence and integrity of the city's judicial system. The statement, delivered by Council Chair <strong>Oda Vress</strong>, cited the ARBITER oversight program as the cornerstone of judicial accountability in the city.</p>
+<p><em>"Tenebris maintains one of the most structurally sound judicial systems in the region,"</em> Council Chair Vress stated. <em>"ARBITER ensures that no case, no verdict, and no proceeding is subject to external influence. The citizens of this city can trust that justice is being served fairly and without prejudice."</em></p>
+<div class="art-pullquote">"ARBITER ensures that no case, no verdict, and no proceeding is subject to external influence." — Council Chair Oda Vress</div>
+<p>The statement was released without a press conference or opportunity for public questions, consistent with the format used in the five preceding years. No independent verification of ARBITER's operations, funding, or personnel has ever been made available to the public or to credentialed press.</p>
+<hr class="art-divider">
+<p>When asked by this publication to provide a contact for the ARBITER program directly, the Council communications office responded that <em>"ARBITER operates as a sealed administrative body and does not maintain a public-facing communications channel."</em></p>
+<p>This is the sixth consecutive year the Council has cited ARBITER in its transparency statement. It is also the sixth consecutive year no independent audit of ARBITER has been proposed, seconded, or voted upon.</p>
+<div class="art-note">ARBITER was introduced quietly in year one of the current administration. Its founding mandate, budget, staffing structure, and chain of command remain undisclosed. The program has never been subject to a public inquiry.</div>`
+  },
+
+  hollow:{
+    cat:'notice', catLabel:'Missing Persons // Hollow Ward',
+    title:'Eleven Residents Unaccounted for in Hollow Ward — Department Response Described as "Nonexistent"',
+    meta:'PUBLISHED 03.07.26 &nbsp;·&nbsp; REPORTER: ANON &nbsp;·&nbsp; SRC: COMMUNITY TIP, HOLLOW WARD RESIDENTS ASSOCIATION',
+    body:`<p>Over a three-week period beginning in mid-February, eleven residents of Hollow Ward were reported missing to the Fourth Precinct. According to multiple sources within the ward, precinct response to these reports has been — in the words of one community organizer — <em>"functionally nonexistent."</em></p>
+<p>The missing individuals range in age from <strong>17 to 54</strong>. They include a delivery worker, a schoolteacher, two students, a retired dockworker, and six others whose occupations were not confirmed at time of writing. None of them have any known history of disappearing voluntarily. Several left behind belongings, meals mid-preparation, or open communication threads.</p>
+<div class="art-pullquote">"He left his keys on the table. His phone was still charging. Nobody just walks away from that." — family member of a missing Hollow Ward resident</div>
+<p>The Fourth Precinct confirmed receipt of nine of the eleven reports. It classified all nine as <strong>low priority</strong>, citing a department-wide triage system that deprioritizes cases without evidence of immediate danger or criminal activity at the point of disappearance. Two reports were not found in departmental records at all.</p>
+<hr class="art-divider">
+<p>Hollow Ward residents have organized their own informal search effort, though access to several adjacent blocks — particularly those nearest to the border with restricted Sector 9 — has been denied by city officers citing an ongoing, unnamed operation.</p>
+<div class="art-note red">Three of the eleven missing individuals were last seen in the vicinity of the Eastline's Hollow Ward platform — the same platform where service was suspended on 03.10.26. This publication is not asserting a connection. We note the proximity.</div>
+<p class="art-ghost">cross-reference: case 4327, incident log 47, series ARC — hollow ward flagged as a monitored zone</p>`
+  },
+
+  case4327:{
+    cat:'crime', catLabel:'Cold Case // Restricted',
+    title:'Case 4327: What We Know — and What Keeps Disappearing',
+    meta:'PUBLISHED 03.06.26 &nbsp;·&nbsp; REPORTER: ANONYMOUS &nbsp;·&nbsp; THIS ARTICLE HAS BEEN EDITED',
+    body:`<p>For two years, Case 4327 has accumulated a trail of redactions, sealed files, missing witnesses, and an evidence log that seems to shrink each time it is accessed. This publication has been attempting to report on Case 4327 since it was first referenced — obliquely — in a departmental press summary in late 2024. That reference was subsequently removed from the archive.</p>
+<p>What we know: Case 4327 was opened following the death of an individual whose name has never been officially released. The case was initially flagged as a homicide. It was then reclassified as <em>undetermined</em>. It was then reclassified again as <em>natural causes, pending review</em>. It has been in pending review for nineteen months.</p>
+<div class="art-pullquote">"I pulled the file. I came back the next day and three pages were gone. Not redacted. Gone. The page numbers skipped." — former departmental clerk, identity withheld</div>
+<p>Three witnesses identified in early case documentation have since become unreachable. One is officially listed as having relocated out of city. One has been listed as missing (see: Hollow Ward, 03.07.26). One has not been listed as anything — their name simply no longer appears in city records at all.</p>
+<hr class="art-divider">
+<p>The evidence log for Case 4327 was accessed by this publication through a legal records request in January. At that time, it listed <strong>forty-one items</strong>. When our legal team submitted a follow-up request in February, the same log listed <strong>twenty-three items</strong>. When we requested clarification, we were informed that the original request had been fulfilled in error and that the case file was now classified under administrative seal.</p>
+<p>The department's seal authority cites ARBITER review protocols as the basis for restriction.</p>
+<div class="art-note red">This article was originally longer. Two sections were removed following a formal communication from City Legal on 03.05.26. The removed sections concerned specific individuals named in early case documentation. We have retained copies.</div>
+<p class="art-ghost">47X-ARC // this is one of them // you are reading a monitored page // the file is not gone — it was moved</p>`
+  },
+
+  carrow:{
+    cat:'crime', catLabel:'Crime // Carrow District',
+    title:'The Carrow Trial That Never Was — A Timeline',
+    meta:'PUBLISHED 03.05.26 &nbsp;·&nbsp; REPORTER: M. OREL',
+    body:`<p>What began as an open-and-shut murder case in the Carrow district has unraveled into one of Tenebris's most quietly suppressed legal failures. The victim: <strong>Ren Colby</strong>, 33, found deceased in her Carrow apartment on the morning of September 14, 2024. A suspect was identified and arrested within 72 hours. What happened next is harder to explain.</p>
+<p><strong>September 2024:</strong> Suspect arrested, charged, remanded to custody. Prosecutors describe the case as straightforward. Evidence includes physical forensics, witness testimony from two neighbors, and surveillance footage from a nearby building.</p>
+<p><strong>October 2024:</strong> The surveillance footage is ruled inadmissible. Reason given: <em>chain of custody error</em>. Defense files for dismissal. Motion denied.</p>
+<p><strong>November 2024:</strong> One witness recants. The second witness stops responding to subpoenas. Their address in city records is listed as vacant.</p>
+<div class="art-pullquote">"There was a case. Then there wasn't. Nobody told us anything. Not even what happened to the evidence." — Ren Colby's sister</div>
+<p><strong>January 2025:</strong> The forensic report — previously reviewed and accepted by the court — is returned to the department for "supplemental verification." It has not been returned.</p>
+<p><strong>February 2025:</strong> The presiding judge is reassigned without explanation. A replacement judge is assigned. The replacement judge recuses herself without explanation. A third judge is assigned.</p>
+<p><strong>March 2025:</strong> The suspect is released on procedural grounds. The case is reclassified as <em>pending evidentiary review</em>. The third judge has since retired early.</p>
+<hr class="art-divider">
+<p><strong>March 2026:</strong> The case remains open. No trial date has been set. Ren Colby's family has not been contacted by the department in eleven months.</p>
+<div class="art-note red">This publication attempted to contact the ARBITER program directly regarding the Carrow case after multiple sources suggested its involvement. We received no response. We did receive, three days after sending our inquiry, a notice from City Legal informing us that portions of our records request were being flagged for "national civic security review." We are not aware of any precedent for this classification.</div>`
+  },
+
+  precinct:{
+    cat:'civic', catLabel:'Public Services // Ashgate',
+    title:'Ashgate Precinct Budget Cut for Third Consecutive Year Despite Climbing Crime Statistics',
+    meta:'PUBLISHED 03.04.26 &nbsp;·&nbsp; REPORTER: CITY DESK',
+    body:`<p>The Ashgate precinct — the smallest and most underfunded in the city — will see its operating budget reduced by an additional 12% in the coming fiscal quarter. The cut was approved in a closed budget session on 03.02.26 and was not publicized by the city until this publication filed a transparency request.</p>
+<p>The reduction brings Ashgate's total operational budget to roughly <strong>one-third</strong> of what comparable districts receive per capita. The precinct currently operates with eleven active officers covering a residential population of 53,000. It has no dedicated forensics capability. Evidence requiring laboratory processing must be sent to the Fourth Precinct — a process that, sources say, routinely takes weeks and occasionally results in samples being returned mislabeled or not returned at all.</p>
+<div class="art-pullquote">"We're not a precinct. We're a building with a sign on it." — Ashgate officer, identity withheld</div>
+<p>Ashgate's crime index has increased for the third consecutive year. Reported violent incidents are up 31% year-over-year. Solved cases as a proportion of opened investigations have dropped to <strong>6%</strong> — the lowest figure recorded for any district in the past decade.</p>
+<hr class="art-divider">
+<p>The city's budget office did not respond to a request for comment. A Council spokesperson stated that <em>"resource allocation is based on a comprehensive city-wide needs assessment"</em> and that <em>"Ashgate continues to receive appropriate support."</em></p>
+<div class="art-note">Community members in Ashgate have begun organizing informal neighborhood watch groups to compensate for the absence of reliable law enforcement. At least two of these groups have reported being asked by city officers to cease operations without explanation.</div>`
+  },
+
+  /* DISTRICT PROFILES */
+  'd-crestfall':{
+    cat:'civic', catLabel:'District Profile // Crestfall',
+    title:'Crestfall — Residential District, North Quadrant',
+    meta:'DISTRICT POPULATION: 142,000 · CRIME INDEX: HIGH · PRECINCT: SECOND',
+    body:`<p>Crestfall is one of Tenebris's older residential districts, occupying a stretch of dense housing between the North Docks and the Iron Quarter. It is home to a large working-class population, many of whom are employed in the dock and manufacturing sectors.</p>
+<p>The district has experienced a sustained rise in violent crime over the past three years. The Second Precinct, which covers Crestfall, has logged 38 homicides in the current reporting period — of which 6 have resulted in charges. Residents cite poor lighting, inadequate patrol coverage, and a growing sense that reporting crimes leads to nothing.</p>
+<div class="art-pullquote">"You call. They come, eventually. They take notes. You never hear from them again." — Crestfall resident</div>
+<p>Crestfall has no dedicated community liaison office. Its nearest legal aid clinic is located in Iron Quarter and operates two days per week. The district's school system is rated among the lowest in the city for resources and staffing.</p>
+<div class="art-note">Active investigations in Crestfall: 4 open homicide cases, 12 missing persons reports, 1 classified case flagged under restricted administrative review.</div>`
+  },
+  'd-ndocks':{
+    cat:'civic', catLabel:'District Profile // North Docks',
+    title:'North Docks — Industrial Port District',
+    meta:'DISTRICT POPULATION: 89,000 · CRIME INDEX: ELEVATED · PRECINCT: THIRD',
+    body:`<p>The North Docks district covers the city's primary port infrastructure, including seventeen active shipping terminals and a dense network of warehouse blocks. The working population is transient by nature, with a significant percentage of workers arriving on short-term labor contracts.</p>
+<p>The transient nature of the population creates ongoing challenges for law enforcement: witnesses are frequently unavailable by the time investigations begin, and many incidents go unreported due to employment concerns. The Third Precinct has noted a pattern of incidents in the dock zone that are logged but never escalated.</p>
+<p>Two of the eleven missing persons from Hollow Ward were last employed in North Docks. Their employment records have not been made available to the public investigation.</p>
+<div class="art-note">The dock zone falls partially within a designated security perimeter. Civilian access to terminals 9 through 17 requires a city-issued pass that has been unavailable for new applicants since late 2025. No explanation has been provided for the pause in issuance.</div>`
+  },
+  'd-sector9':{
+    cat:'crime', catLabel:'District Profile // Sector 9 — RESTRICTED',
+    title:'Sector 9 — Access Restricted, Classification Pending',
+    meta:'DISTRICT POPULATION: UNKNOWN · STATUS: RESTRICTED · PRECINCT: NONE ASSIGNED',
+    body:`<p>Public information regarding Sector 9 is not available through this portal.</p>
+<p>Sector 9 was reclassified as a restricted zone in mid-2024 following what city officials described as an <em>"ongoing operational matter"</em>. No further detail has been provided. The zone's previous designation, population data, and administrative records have been sealed.</p>
+<p>Residents who previously lived in the area report being relocated without formal notice, in some cases without explanation. Several former Sector 9 residents contacted this publication. Two declined to speak further after initial contact. One has since become unreachable.</p>
+<div class="art-note red">ACCESS TO FURTHER INFORMATION REQUIRES AUTHORIZATION // ENTER CODE AT TERMINAL</div>
+<p class="art-ghost">sector 9 appears in case 4327 documentation — location of a meeting — ref: 47X-ARC</p>`
+  },
+  'd-ironqtr':{
+    cat:'civic', catLabel:'District Profile // Iron Quarter',
+    title:'Iron Quarter — Commercial and Administrative Hub',
+    meta:'DISTRICT POPULATION: 201,000 · CRIME INDEX: MODERATE · PRECINCT: FIRST',
+    body:`<p>Iron Quarter is the commercial center of Tenebris — home to the city's largest office blocks, financial institutions, and the administrative campus that houses several city departments. It is also the most surveilled district in the city by a significant margin.</p>
+<p>The First Precinct, which serves Iron Quarter, is the best-funded in the city. It receives approximately four times the per-capita budget of Ashgate and maintains a dedicated forensics unit. Crime rates in Iron Quarter are lower than in most other districts. Critics note that enforcement resources are concentrated here while outer districts deteriorate.</p>
+<div class="art-pullquote">"They have cameras on every corner in Iron Quarter. In Ashgate we have one officer for every five thousand people." — civic advocacy group statement</div>
+<p>Iron Quarter is also home to the city's court complex, including the buildings where ARBITER's administrative offices are believed to be located. No public directory lists these offices. Press inquiries about their location have gone unanswered.</p>`
+  },
+  'd-hollow':{
+    cat:'notice', catLabel:'District Profile // The Hollow — RESTRICTED',
+    title:'The Hollow — Partial Restriction Active, File Sealed',
+    meta:'DISTRICT POPULATION: UNLISTED · STATUS: PARTIAL RESTRICTION · PRECINCT: FOURTH (LIMITED)',
+    body:`<p>The Hollow is a densely populated low-income district bordering Sector 9 to the east. It was placed under partial restriction following an undisclosed incident in early 2025. Approximately a third of the district — primarily the eastern blocks nearest Sector 9 — is now inaccessible without city clearance.</p>
+<p>Eleven residents of the Hollow Ward have been reported missing over the past three weeks. The Fourth Precinct has classified all reported cases as low priority. Community members are conducting their own searches. Access to the eastern blocks, where several of the missing were last seen, has been denied to civilian searchers by city officers.</p>
+<div class="art-pullquote">"They tell us the area is under operational review. They've been saying that for four months." — Hollow Ward community organizer</div>
+<div class="art-note red">File sealed under administrative review. ARBITER protocol cited as basis for restriction. No timeline for declassification provided.</div>
+<p class="art-ghost">the hollow — case 4327 — sector 9 — these three appear together in every redacted file // 47X-ARC</p>`
+  },
+  'd-carrow':{
+    cat:'crime', catLabel:'District Profile // Carrow',
+    title:'Carrow — Residential District, Mid-City South',
+    meta:'DISTRICT POPULATION: 67,000 · CRIME INDEX: HIGH · PRECINCT: FOURTH',
+    body:`<p>Carrow is a mid-sized residential district with a long history of community organization and civic engagement — a history that has been significantly strained over the past two years by a series of high-profile failures in the local justice system.</p>
+<p>The district gained public attention following the death of Ren Colby and the subsequent collapse of the prosecution. Since then, two additional cases have followed a similar pattern: initial arrests, eroding evidence, and eventual reclassification or dismissal.</p>
+<p>Carrow residents have formed a civilian accountability organization — the Carrow Witness Collective — that has been documenting case irregularities since early 2025. The organization operates under increasing legal pressure. One of its founding members is currently on the missing persons list.</p>
+<div class="art-note">Curfew in parts of Carrow was extended in February 2026 without a stated reason. Residents in the affected blocks report that the extension coincides with increased activity by city vehicles and officers who do not display standard precinct identification.</div>`
+  },
+  'd-eastcorr':{
+    cat:'civic', catLabel:'District Profile // East Corridor',
+    title:'East Corridor — Transit and Light Industrial District',
+    meta:'DISTRICT POPULATION: 115,000 · CRIME INDEX: ELEVATED · PRECINCT: THIRD (SPLIT COVERAGE)',
+    body:`<p>East Corridor is a long, narrow district running along the eastern edge of the city, defined by its transit infrastructure — the Eastline being its primary artery — and a mix of light industrial facilities and high-density residential towers.</p>
+<p>The Eastline suspension has hit East Corridor harder than any other district. Many residents depend on the line to reach employment in Iron Quarter and the North Docks. Without it, commute times have doubled or tripled. Several employers have issued warnings to workers who cannot arrive on time, apparently unaware or unconcerned that the transit failure is city-managed.</p>
+<p>A curfew is currently active in East Corridor's northern block cluster, in effect since 02.18.26. The curfew has not been officially announced or explained.</p>
+<div class="art-note">East Corridor is the location of the most recent Case 4327 witness sighting. The witness has since been listed as having relocated. No forwarding address or contact was logged.</div>`
+  },
+  'd-vaultrow':{
+    cat:'crime', catLabel:'District Profile // Vault Row — RESTRICTED',
+    title:'Vault Row — ACCESS RESTRICTED',
+    meta:'DISTRICT POPULATION: UNKNOWN · STATUS: FULL RESTRICTION · PRECINCT: NONE ASSIGNED',
+    body:`<p>Information regarding Vault Row is not available through standard portal access.</p>
+<p>Vault Row was quietly removed from the public district registry in late 2024. It does not appear on current city maps distributed to the public. It appears on internal city planning documents obtained by this publication through a third-party source.</p>
+<p>What is known: Vault Row is a small district adjacent to the Iron Quarter's administrative campus. It previously housed a number of city record archives and administrative support offices. It is now listed on internal documents with the notation: <em>ARBITER OPERATIONAL ZONE — RESTRICTED ACCESS — AUTHORIZED PERSONNEL ONLY.</em></p>
+<div class="art-note red">FULL ACCESS REQUIRES AUTHORIZATION // ENTER CODE 47X-ARC AT TERMINAL TO PROCEED</div>
+<p class="art-ghost">vault row — this is where it runs from — 47X-ARC — you're close</p>`
+  },
+  'd-ashgate':{
+    cat:'civic', catLabel:'District Profile // Ashgate',
+    title:'Ashgate — Southern Residential District, Most Underfunded Precinct in the City',
+    meta:'DISTRICT POPULATION: 53,000 · CRIME INDEX: HIGH · PRECINCT: FIFTH (CRITICALLY UNDERSTAFFED)',
+    body:`<p>Ashgate sits at the southern edge of Tenebris, bordered by industrial waste zones and the Outskirts. It is the city's smallest district by budget — and has been for three consecutive years. Its precinct operates with eleven officers for a population of 53,000. National civic standards recommend a ratio of one officer per 500 residents.</p>
+<p>Violent crime in Ashgate has risen every year for the past four years. The case closure rate stands at 6% — meaning that out of every hundred incidents reported, six result in any form of legal resolution. Residents largely report crimes out of habit, not expectation.</p>
+<div class="art-pullquote">"People stopped calling. What's the point? Nothing happens." — long-term Ashgate resident</div>
+<p>Community members have organized three separate neighborhood accountability groups in the past year. Two have been asked to cease operations by city officers. The third operates quietly.</p>
+<div class="art-note">Despite its crime rate, Ashgate has the fewest open cases listed in the official departmental database — not because cases are resolved, but because many are never formally opened. Multiple sources confirm that intake officers at the Fifth Precinct have been instructed to apply extremely narrow criteria for case initiation.</div>`
+  },
+  'd-meridian':{
+    cat:'govt', catLabel:'District Profile // Meridian',
+    title:'Meridian — Government Administrative District',
+    meta:'DISTRICT POPULATION: 178,000 · CRIME INDEX: LOW (REPORTED) · PRECINCT: CITY AUTHORITY MANAGED',
+    body:`<p>Meridian is Tenebris's governmental center — home to City Hall, the Council chambers, the civil courts, and a dense cluster of administrative offices. It is also the district with the lowest reported crime rate in the city.</p>
+<p>Critics argue that the low crime figures in Meridian reflect enforcement asymmetry rather than actual safety disparities — that incidents in Meridian are aggressively addressed while equivalent incidents in Ashgate or Hollow Ward go unlogged.</p>
+<p>Meridian is managed not by a standard precinct but by the City Authority, a separate law enforcement body that reports directly to the Council rather than to the standard departmental chain of command. The City Authority's budget is not disclosed as part of the public budget process.</p>
+<div class="art-pullquote">"There are two cities in this city. In one of them, the lights are on." — civic advocacy document, 2025</div>
+<div class="art-note">The ARBITER program's administrative presence is believed to be located within Meridian, likely within the sealed eastern wing of the civil courts complex. Press access to this area has been denied without explanation for the past eighteen months.</div>`
+  },
+  'd-westbank':{
+    cat:'notice', catLabel:'District Profile // Westbank',
+    title:'Westbank — Mixed Residential District, Disappearance Surge Underreported',
+    meta:'DISTRICT POPULATION: 92,000 · CRIME INDEX: HIGH · PRECINCT: FOURTH (SPLIT COVERAGE)',
+    body:`<p>Westbank sits on the city's western edge, a sprawling mixed-residential district with a young population and a historically active local press — two outlets of which have since shut down, citing "operational difficulties."</p>
+<p>Over the past six months, Westbank has seen a notable increase in disappearances that do not appear in official statistics. Community members have compiled their own informal registry: 23 individuals believed missing who do not appear in the departmental missing persons database. The department has not responded to requests about the discrepancy.</p>
+<div class="art-pullquote">"He's not in their system. He was standing right there, and now he isn't, and they have no record of him." — family member of a Westbank resident</div>
+<p>Westbank was also the site of an incident in late 2025 in which a community meeting discussing Case 4327 was dispersed by city officers who did not display precinct identification. No official report of the dispersal was filed. Video footage of the incident, which circulated briefly, has since been removed from all platforms where it was posted.</p>`
+  },
+  'd-deepward':{
+    cat:'crime', catLabel:'District Profile // Deep Ward — RESTRICTED',
+    title:'Deep Ward — Full Restriction, Below-Ground Zone',
+    meta:'DISTRICT POPULATION: UNKNOWN · STATUS: FULL RESTRICTION · CLASSIFICATION: SEALED',
+    body:`<p>Deep Ward is listed in historical city records as a sub-street-level district occupying the tunnel network and below-grade infrastructure beneath the Iron Quarter and Meridian. Its existence as a habited zone was confirmed by city planning documents from 2018. Its current status is unknown.</p>
+<p>References to Deep Ward in city documents between 2018 and 2024 are inconsistent — it appears and disappears from administrative filings with no pattern. Since mid-2024, all references have been removed from publicly accessible records.</p>
+<p>Two former city infrastructure workers contacted this publication separately. Both described Deep Ward as <em>"still occupied"</em> as recently as late 2025. Both requested that their identities not be published. One has since stopped responding to communications.</p>
+<div class="art-note red">THIS DISTRICT PROFILE IS RESTRICTED. FULL DOCUMENTATION REQUIRES AUTHORIZATION. ENTER CODE AT TERMINAL.</div>
+<p class="art-ghost">deep ward — ref: case 4327 annex file — loc: sub-level 3 — 47X-ARC</p>`
+  },
+  'd-lowline':{
+    cat:'civic', catLabel:'District Profile // Lowline',
+    title:'Lowline — Below-Street Residential Zone, Elevated Disappearance Rate',
+    meta:'DISTRICT POPULATION: 34,000 · CRIME INDEX: VERY HIGH · PRECINCT: FIFTH (NOMINAL COVERAGE)',
+    body:`<p>Lowline occupies a series of repurposed below-grade structures in the city's southeastern section — former transit maintenance tunnels, sub-level warehouses, and infrastructure voids that were informally settled beginning in the 1990s and gradually formalized into a recognized residential zone.</p>
+<p>Lowline has the highest disappearance rate of any formally recognized district in Tenebris. The Fifth Precinct, which nominally covers the area, has no officers permanently assigned to it. Patrols occur irregularly and rarely extend below street level.</p>
+<div class="art-pullquote">"People disappear down here and no one even notices there's a gap. Nobody counts us." — Lowline community spokesperson</div>
+<p>Access points between Lowline and the above-street city have been progressively restricted over the past two years. Three previously public access shafts have been sealed. City infrastructure services states this is for "safety compliance." Lowline residents describe being increasingly cut off.</p>
+<div class="art-note">Six of the names on the unofficial Westbank disappearance registry were last seen entering Lowline via now-sealed access points. This has not been acknowledged by any city department.</div>`
+  },
+  'd-palecross':{
+    cat:'civic', catLabel:'District Profile // Pale Cross',
+    title:'Pale Cross — Old City District, Archival Irregularities Ongoing',
+    meta:'DISTRICT POPULATION: 71,000 · CRIME INDEX: MODERATE-HIGH · PRECINCT: SECOND (PARTIAL)',
+    body:`<p>Pale Cross is one of the oldest settled areas of Tenebris, characterized by dense pre-modern architecture, narrow streets, and a community with deep roots in the city's history. It is also the district whose administrative records have been subject to the most documented irregularities in recent years.</p>
+<p>Legal advocates working in Pale Cross have filed seventeen formal complaints over the past two years regarding missing, altered, or inaccessible case documentation. In at least four instances, physical court exhibits were confirmed logged and then confirmed absent without explanation.</p>
+<div class="art-pullquote">"The records don't just get lost. Something is choosing what disappears." — legal advocate, Pale Cross Pro Bono Clinic</div>
+<p>Pale Cross is also home to the city's oldest public archive — a building that was quietly decommissioned in 2025 and transferred to city administrative management. Public access, previously unrestricted, now requires an appointment that community members report is impossible to schedule.</p>`
+  },
+  'd-outskirts':{
+    cat:'civic', catLabel:'District Profile // Outskirts',
+    title:'Outskirts — Unincorporated Boundary Zone, No Active Law Enforcement',
+    meta:'DISTRICT POPULATION: UNVERIFIED · CRIME INDEX: UNTRACKED · PRECINCT: NONE',
+    body:`<p>The Outskirts is the informal name for the unincorporated zone beyond Tenebris's southern and eastern administrative boundaries. It is not technically a district — it has no precinct, no city services, and no formal residential registry. People live there anyway.</p>
+<p>Population estimates range from 8,000 to 40,000 depending on the source and methodology. The city does not conduct census activity in the Outskirts. Emergency services do not cover it. There is no garbage collection, water infrastructure maintenance, or public lighting.</p>
+<div class="art-pullquote">"We don't exist to them. Which means we also don't get counted when things happen to us." — Outskirts resident</div>
+<p>The Outskirts is where all three victims in the recently closed homicide cases were found. It is also where an unknown number of Tenebris's most vulnerable residents live — people who cannot afford the city proper, who have been displaced from districts undergoing restriction, or who have, for various reasons, chosen to disappear from the city's records entirely.</p>
+<div class="art-note">This publication has no reliable way to count or document incidents in the Outskirts. We receive tips occasionally. We follow them when we can. We publish what we can verify. We suspect the true picture is significantly darker than what we are able to report.</div>`
+  },
+};
+
+/* ── OPEN / CLOSE ARTICLE ── */
+function openArticle(id){
+  const a = articles[id];
+  if(!a) return;
+  const el = document.getElementById('articleContent');
+  el.innerHTML = `
+    <button class="art-back" onclick="closeArticle()">← BACK TO PORTAL</button>
+    <div class="art-cat ${a.cat}">${a.catLabel}</div>
+    <h1 class="art-h">${a.title}</h1>
+    <div class="art-meta">${a.meta}</div>
+    <div class="art-body">${a.body}</div>
+  `;
+  const ov = document.getElementById('overlay');
+  ov.classList.add('on');
+  ov.scrollTop = 0;
+}
+function closeArticle(){
+  document.getElementById('overlay').classList.remove('on');
+}
+// close on backdrop click
+document.getElementById('overlay').addEventListener('click',function(e){
+  if(e.target === this) closeArticle();
+});
+
+/* ── EYES CANVAS ── */
+(function(){
+  const cv=document.getElementById('eyeCanvas'),cx=cv.getContext('2d');let eyes=[];
+  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight;init();}
+  function init(){eyes=[];const n=Math.floor(cv.width*cv.height/18000);for(let i=0;i<n;i++)eyes.push({x:Math.random()*cv.width,y:Math.random()*cv.height,rx:12+Math.random()*22,ry:6+Math.random()*10,a:.2+Math.random()*.8,bt:Math.random()*Math.PI*2,bs:.007+Math.random()*.014,dt:Math.random()*Math.PI*2,ds:.002+Math.random()*.004,da:1+Math.random()*2});}
+  function draw(){cx.clearRect(0,0,cv.width,cv.height);for(let e of eyes){e.bt+=e.bs;e.dt+=e.ds;const blink=Math.max(.06,.5+.5*Math.sin(e.bt));const ry=e.ry*blink,dy=Math.sin(e.dt)*e.da;cx.save();cx.globalAlpha=e.a*.85;cx.strokeStyle='#0000dd';cx.fillStyle='rgba(0,0,160,.07)';cx.lineWidth=1.1;cx.beginPath();cx.ellipse(e.x,e.y+dy,e.rx,ry,0,0,Math.PI*2);cx.fill();cx.stroke();if(blink>.28){cx.beginPath();cx.arc(e.x,e.y+dy,Math.min(e.rx*.32,ry*.7),0,Math.PI*2);cx.fillStyle='rgba(0,0,190,.45)';cx.fill();}cx.restore();}requestAnimationFrame(draw);}
+  window.addEventListener('resize',resize);resize();requestAnimationFrame(draw);
+})();
+
+/* ── FLASH ── */
+function glitch(){const f=document.getElementById('flash');f.classList.add('on');setTimeout(()=>f.classList.remove('on'),70);setTimeout(()=>{f.classList.add('on');setTimeout(()=>f.classList.remove('on'),50);},150);}
+setInterval(()=>{if(Math.random()<.1)glitch();},10000);
+
+/* ── TRANSMISSION ── */
+const segs=[
+  {t:'Fear is the only law in which we abide.\n\n',p:700},
+  {t:'Is this thing on?\n\n',p:500},
+  {t:'Shit. Okay.\n\n',p:400},
+  {t:'Can you hear me?\n\n',p:650},
+  {t:'You must be new to ',p:0},
+  {t:'Tenebris',cls:'tx-city',click:true,p:1000},
+  {t:'.\n\n',p:0},
+  {t:'You heard of ',p:0},
+  {t:'arbiters',cls:'tx-arb',p:900},
+  {t:'...?\n\n',p:0},
+  {t:'No no, not the judicial term.',p:0},
+];
+const tb=document.getElementById('txBody');
+function typeSeg(si,ci){
+  if(si>=segs.length){const c=document.createElement('span');c.className='cblink';tb.appendChild(c);return;}
+  const s=segs[si];
+  if(ci===0){const sp=document.createElement('span');if(s.cls)sp.className=s.cls;if(s.click)sp.addEventListener('click',glitch);sp.id='ts'+si;tb.appendChild(sp);}
+  const sp=document.getElementById('ts'+si);
+  if(ci<s.t.length){let ch=s.t[ci];if(/[a-z]/.test(ch)&&Math.random()<.025){sp.textContent+=ch.toUpperCase();setTimeout(()=>{sp.textContent=sp.textContent.slice(0,-1)+ch;},90);}else sp.textContent+=ch;setTimeout(()=>typeSeg(si,ci+1),36+Math.random()*28);}
+  else setTimeout(()=>typeSeg(si+1,0),s.p||0);
+}
+setTimeout(()=>typeSeg(0,0),900);
+
+/* ── LIVE FEED ── */
+const entries=[
+  {t:'03:47',m:'Unit 14 non-responsive at Hollow Ward checkpoint.',c:'alert'},
+  {t:'03:51',m:'Noise complaint — East Corridor, block 9. Caller anonymous.',c:''},
+  {t:'04:02',m:'Body recovered near Pale Cross. Case assigned. File: pending.',c:'new'},
+  {t:'04:14',m:'Case 4327 — access attempt blocked by system authority.',c:'alert'},
+  {t:'04:22',m:'One resident added to missing list. District: Carrow.',c:''},
+  {t:'04:39',m:'Evidence upload failure — case 1194. Reason: unknown.',c:'alert'},
+  {t:'04:55',m:'Government statement: all district conditions nominal.',c:''},
+  {t:'05:03',m:'Trial postponed indefinitely. Presiding judge unavailable.',c:'new'},
+  {t:'05:17',m:'Second witness in Carrow proceedings — contact lost.',c:'alert'},
+  {t:'05:44',m:'Partial signal detected, freq 47.3. Origin: null.',c:'new'},
+];
+const feedEl=document.getElementById('feed');let fi=0;
+function addFeed(){if(fi>=entries.length)return;const e=entries[fi++];const d=document.createElement('div');d.className='feed-row '+e.c;d.innerHTML='<span class="feed-t">'+e.t+'</span>'+e.m;feedEl.prepend(d);setTimeout(addFeed,2300+Math.random()*2500);}
+setTimeout(addFeed,1300);
+
+/* ── STAT FLICKER ── */
+setInterval(()=>{const el=document.getElementById('kc');let n=0;const iv=setInterval(()=>{el.textContent=Math.floor(200+Math.random()*120);if(++n>5){el.textContent='247';clearInterval(iv);}},80);},15000);
+
+/* ── CODE ── */
+function submitCode(){
+  const v=document.getElementById('codeIn').value.toUpperCase().replace(/[-\s]/g,'');
+  if(v==='47XARC'){openArb();}
+  else{const err=document.getElementById('tErr');err.classList.add('on');glitch();setTimeout(()=>err.classList.remove('on'),2000);}
+}
+document.getElementById('codeIn').addEventListener('keydown',e=>{if(e.key==='Enter')submitCode();});
+document.querySelectorAll('.dist.locked').forEach(d=>{d.addEventListener('click',()=>{document.getElementById('codeIn').focus();glitch();});});
+document.addEventListener('click',e=>{if(e.target.classList.contains('tx-arb'))openArb();});
+
+/* ── ARBITER ── */
+function openArb(){glitch();setTimeout(()=>document.getElementById('arbScreen').classList.add('on'),300);}
+function closeArb(){glitch();setTimeout(()=>document.getElementById('arbScreen').classList.remove('on'),200);}
+document.getElementById('ghost').addEventListener('click',openArb);
+</script>
+</body>
+</html>
